@@ -3,6 +3,6 @@ project(snowboy_vision_lib)
 
 set(CMAKE_CXX_STANDARD 11)
 
+add_subdirectory(utils)
 add_subdirectory(kernel)
-
-add_executable(main_demo ./main.cpp $<TARGET_OBJECTS:Vision_External> $<TARGET_OBJECTS:Vision_Utils>)
+add_subdirectory(kernel_bin)

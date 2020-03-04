@@ -1,5 +1,7 @@
-cmake_minimum_required(VERSION 3.12)
-aux_source_directory(. DIR_UTILS)
-include_directories(../../../external/libjpeg/install)
-include_directories(../../../external/libjpeg)
-add_library(Vision_Utils OBJECT ${DIR_UTILS})
+cmake_minimum_required(VERSION 3.5)
+set(libjpeg_path ../../tools/libjpeg/install)
+include_directories(${libjpeg_path}/include)
+link_directories(${libjpeg_path}/lib)
+
+add_executable(main_demo main.cpp image_loader.cpp $<TARGET_OBJECTS:Vision_Utils>)
+target_link_libraries(main_demo jpeg)

@@ -52,7 +52,7 @@ public:
     unsigned long height() {return height_;}
     unsigned long width() {return width_;}
     unsigned long channels() {return output_components_;}
-    const unsigned char* rgb_data();
+    const unsigned char* rgb_data() {return data.data();};
 
 private:
     unsigned long height_ = 0;

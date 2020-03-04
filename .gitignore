@@ -32,5 +32,4 @@
 *.app
 
 # Build dir
-cmake-build-debug
 build

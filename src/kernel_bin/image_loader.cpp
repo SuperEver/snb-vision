@@ -12,7 +12,7 @@ void jpegErrorExit (j_common_ptr cinfo)
 }
 
 ImageLoader::ImageLoader(const char* filename) {
-
+    read_image(filename);
 }
 
 ImageType ImageLoader::read_image(const char *filename) {
@@ -31,7 +31,7 @@ ImageType ImageLoader::read_image(const char *filename) {
     }
 
     FILE* file = fopen(filename, "rb");
-    assert(!file);
+    assert(file != NULL);
 
     jpeg_create_decompress(&cinfo);
 
