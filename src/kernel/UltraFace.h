@@ -2,9 +2,9 @@
 // Created by Zhang,Yongchao(Duer) on 2020/3/4.
 //
 
-#pargma once
-#include "gpu.h"
-#include "net.h"
+#pragma once
+
+#include "ncnn/net.h"
 #include <algorithm>
 #include <iostream>
 #include <string>
