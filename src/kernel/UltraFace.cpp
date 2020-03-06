@@ -9,13 +9,28 @@
 #define clip(x, y) (x < 0 ? 0 : (x > y ? y : x))
 
 #include "UltraFace.h"
+#include "../utils/INIReader.h"
 #include "ncnn/mat.h"
+#include <string>
+#include <iostream>
 
-UltraFace::UltraFace(const std::string &bin_path, const std::string &param_path,
-                     int input_width, int input_length, int num_thread_,
-                     float score_threshold_, float iou_threshold_, int topk_) {
+UltraFace::UltraFace(const char* model_dir, const char* config_filename) {
+    std::string config_full_path = std::string(model_dir) + "/" +  std::string(config_filename);
+    INIReader reader(config_full_path.c_str());
+    if (reader.ParseError() < 0) {
+        return;
+    }
+    std::string bin_path = std::string(model_dir).append("/") +
+            reader.Get("model", "ncnn_bin", "");
+    std::string param_path = std::string(model_dir).append("/") +
+            reader.Get("model", "ncnn_param", "");
+    int input_width = reader.GetInteger("setting", "input_width", 320);
+    int input_length = reader.GetInteger("setting", "input_length", 240);
+    int num_thread_ = reader.GetInteger("setting", "num_thread", 1);
+    float score_threshold_ = reader.GetReal("setting", "score_threshold_", 0.7);
+    float iou_threshold_ = reader.GetReal("setting", "iou_threshold", 0.3);
+
     num_thread = num_thread_;
-    topk = topk_;
     score_threshold = score_threshold_;
     iou_threshold = iou_threshold_;
     in_w = input_width;
@@ -57,6 +72,7 @@ UltraFace::UltraFace(const std::string &bin_path, const std::string &param_path,
     ultraface.load_param(param_path.data());
     ultraface.load_model(bin_path.data());
 }
+
 
 UltraFace::~UltraFace() { ultraface.clear(); }
 

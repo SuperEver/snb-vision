@@ -1,4 +1,10 @@
-
+## build libyuv
+```
+mkdir build && cd build 
+cmake -DCMAKE_INSTALL_PREFIX=../install ..
+make install -j 8
+cd ..
+```
 
 ## build opencv
 ```

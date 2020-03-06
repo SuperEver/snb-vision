@@ -9,18 +9,16 @@
 
 int main(int argc, char **argv) {
     if (argc != 4) {
-        fprintf(stderr, "Usage: %s <ncnn bin> <ncnn param> list[src_image dst_image]\n", argv[0]);
+        fprintf(stderr, "Usage: %s ncnn_model_dir config_filename list[src_image dst_image]\n", argv[0]);
         return 1;
     }
 
-    std::string bin_path = argv[1];
-    std::string param_path = argv[2];
     FILE* stream_lst = fopen(argv[3], "r");
     if (!stream_lst) {
         fprintf(stderr, "List file %s does not exist\n", argv[3]);
         return 1;
     }
-    UltraFace ultraface(bin_path, param_path, 320, 240, 1, 0.7); // config model input
+    UltraFace ultraface(argv[1], argv[2]); // config model input
 
     char src_filename[1024], dst_filename[1024];
     while(fscanf(stream_lst, "%s%s", src_filename, dst_filename) == 2) {
