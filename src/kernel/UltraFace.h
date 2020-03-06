@@ -13,6 +13,7 @@
 #define num_featuremap 4
 #define hard_nms 1
 #define blending_nms 2 /* mix nms was been proposaled in paper blaze face, aims to minimize the temporal jitter*/
+namespace duerVision {
 
 typedef struct FaceInfo {
     float x1;
@@ -26,14 +27,19 @@ typedef struct FaceInfo {
 
 class UltraFace {
 public:
-    UltraFace(const char* model_dir, const char* config_filename);
+    UltraFace(const char *model_dir, const char *config_filename);
 
     ~UltraFace();
 
-    int detect(ncnn::Mat &img, std::vector<FaceInfo> &face_list);
+    // 输入图，返回人脸框，原图宽高（用于将人脸框映射到此尺寸)
+    int detect(ncnn::Mat &img, std::vector<FaceInfo> &face_list, int ori_w, int ori_h);
+
+    // 输入图像素数据，宽，高，通道类型（ncnn::Mat::PIXEL_RGB或ncnn::Mat::PIXEL_BGR)，人脸框
+    int detect(const unsigned char *pixel_array, int w, int h, int type, std::vector<FaceInfo> &face_list);
 
 private:
-    void generateBBox(std::vector<FaceInfo> &bbox_collection, ncnn::Mat scores, ncnn::Mat boxes, float score_threshold, int num_anchors);
+    void generateBBox(std::vector<FaceInfo> &bbox_collection, ncnn::Mat scores, ncnn::Mat boxes, float score_threshold,
+                      int num_anchors, int ori_w, int ori_h);
 
     void nms(std::vector<FaceInfo> &input, std::vector<FaceInfo> &output, int type = blending_nms);
 
@@ -70,3 +76,5 @@ private:
 
     std::vector<std::vector<float>> priors = {};
 };
+
+}

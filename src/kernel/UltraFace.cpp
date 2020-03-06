@@ -11,19 +11,22 @@
 #include "UltraFace.h"
 #include "../utils/INIReader.h"
 #include "ncnn/mat.h"
+#include "../utils/snowboy_logging.h"
 #include <string>
 #include <iostream>
 
-UltraFace::UltraFace(const char* model_dir, const char* config_filename) {
-    std::string config_full_path = std::string(model_dir) + "/" +  std::string(config_filename);
+namespace duerVision {
+
+UltraFace::UltraFace(const char *model_dir, const char *config_filename) {
+    std::string config_full_path = std::string(model_dir) + "/" + std::string(config_filename);
     INIReader reader(config_full_path.c_str());
     if (reader.ParseError() < 0) {
         return;
     }
     std::string bin_path = std::string(model_dir).append("/") +
-            reader.Get("model", "ncnn_bin", "");
+                           reader.Get("model", "ncnn_bin", "");
     std::string param_path = std::string(model_dir).append("/") +
-            reader.Get("model", "ncnn_param", "");
+                             reader.Get("model", "ncnn_param", "");
     int input_width = reader.GetInteger("setting", "input_width", 320);
     int input_length = reader.GetInteger("setting", "input_length", 240);
     int num_thread_ = reader.GetInteger("setting", "num_thread", 1);
@@ -76,18 +79,30 @@ UltraFace::UltraFace(const char* model_dir, const char* config_filename) {
 
 UltraFace::~UltraFace() { ultraface.clear(); }
 
-int UltraFace::detect(ncnn::Mat &img, std::vector<FaceInfo> &face_list) {
+int UltraFace::detect(const unsigned char *pixel_array, int w, int h, int type, std::vector<FaceInfo> &face_list) {
+    if (type != ncnn::Mat::PIXEL_RGB && type != ncnn::Mat::PIXEL_BGR ) {
+        SNOWBOY_LOG(LogLevel::WARNING) << "image should be rgb format" << std::endl;
+        return -1;
+    }
+    ncnn::Mat img = ncnn::Mat::from_pixels_resize(pixel_array, type, w, h, in_w, in_h);
+    return detect(img, face_list, w, h);
+}
+
+int UltraFace::detect(ncnn::Mat &img, std::vector<FaceInfo> &face_list, int ori_w, int ori_h) {
     if (img.empty()) {
         std::cout << "image is empty ,please check!" << std::endl;
         return -1;
     }
 
-    image_h = img.h;
-    image_w = img.w;
+    printf("img.h = %d, img.w = %d\n", img.h, img.w);
 
-    ncnn::Mat in;
-    ncnn::resize_bilinear(img, in, in_w, in_h);
-    ncnn::Mat ncnn_img = in;
+    ncnn::Mat ncnn_img;
+    if (img.h != in_h && img.w != in_w) {
+        ncnn::resize_bilinear(img, ncnn_img, in_w, in_h);
+    } else {
+        ncnn_img = img;
+    }
+
     ncnn_img.substract_mean_normalize(mean_vals, norm_vals);
 
     std::vector<FaceInfo> bbox_collection;
@@ -101,12 +116,13 @@ int UltraFace::detect(ncnn::Mat &img, std::vector<FaceInfo> &face_list) {
     ncnn::Mat boxes;
     ex.extract("scores", scores);
     ex.extract("boxes", boxes);
-    generateBBox(bbox_collection, scores, boxes, score_threshold, num_anchors);
+    generateBBox(bbox_collection, scores, boxes, score_threshold, num_anchors, ori_w, ori_h);
     nms(bbox_collection, face_list);
     return 0;
 }
 
-void UltraFace::generateBBox(std::vector<FaceInfo> &bbox_collection, ncnn::Mat scores, ncnn::Mat boxes, float score_threshold, int num_anchors) {
+void UltraFace::generateBBox(std::vector<FaceInfo> &bbox_collection, ncnn::Mat scores, ncnn::Mat boxes,
+                             float score_threshold, int num_anchors, int ori_w, int ori_h) {
     for (int i = 0; i < num_anchors; i++) {
         if (scores.channel(0)[i * 2 + 1] > score_threshold) {
             FaceInfo rects;
@@ -115,10 +131,10 @@ void UltraFace::generateBBox(std::vector<FaceInfo> &bbox_collection, ncnn::Mat s
             float w = exp(boxes.channel(0)[i * 4 + 2] * size_variance) * priors[i][2];
             float h = exp(boxes.channel(0)[i * 4 + 3] * size_variance) * priors[i][3];
 
-            rects.x1 = clip(x_center - w / 2.0, 1) * image_w;
-            rects.y1 = clip(y_center - h / 2.0, 1) * image_h;
-            rects.x2 = clip(x_center + w / 2.0, 1) * image_w;
-            rects.y2 = clip(y_center + h / 2.0, 1) * image_h;
+            rects.x1 = clip(x_center - w / 2.0, 1) * ori_w;
+            rects.y1 = clip(y_center - h / 2.0, 1) * ori_h;
+            rects.x2 = clip(x_center + w / 2.0, 1) * ori_w;
+            rects.y2 = clip(y_center + h / 2.0, 1) * ori_h;
             rects.score = clip(scores.channel(0)[i * 2 + 1], 1);
             bbox_collection.push_back(rects);
         }
@@ -206,4 +222,6 @@ void UltraFace::nms(std::vector<FaceInfo> &input, std::vector<FaceInfo> &output,
             }
         }
     }
+}
+
 }

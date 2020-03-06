@@ -18,15 +18,14 @@ int main(int argc, char **argv) {
         fprintf(stderr, "List file %s does not exist\n", argv[3]);
         return 1;
     }
-    UltraFace ultraface(argv[1], argv[2]); // config model input
+    duerVision::UltraFace ultraface(argv[1], argv[2]); // config model input
 
     char src_filename[1024], dst_filename[1024];
     while(fscanf(stream_lst, "%s%s", src_filename, dst_filename) == 2) {
         std::cout << "Processing " << src_filename << std::endl;
         cv::Mat frame = cv::imread(src_filename);
-        ncnn::Mat inmat = ncnn::Mat::from_pixels(frame.data, ncnn::Mat::PIXEL_BGR2RGB, frame.cols, frame.rows);
-        std::vector<FaceInfo> face_info;
-        ultraface.detect(inmat, face_info);
+        std::vector<duerVision::FaceInfo> face_info;
+        ultraface.detect(frame.data, frame.cols, frame.rows, ncnn::Mat::PIXEL_BGR, face_info);
         for (int i = 0; i < face_info.size(); i++) {
             auto face = face_info[i];
             cv::Point pt1(face.x1, face.y1);
