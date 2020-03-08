@@ -74,12 +74,14 @@ UltraFace::UltraFace(const char *model_dir, const char *config_filename) {
 
     ultraface.load_param(param_path.data());
     ultraface.load_model(bin_path.data());
+    b_initialized = true;
 }
 
 
 UltraFace::~UltraFace() { ultraface.clear(); }
 
-int UltraFace::detect(const unsigned char *pixel_array, int w, int h, int type, std::vector<FaceInfo> &face_list) {
+int UltraFace::detect(const unsigned char *pixel_array, int w, int h, int type,
+        std::vector<FaceInfo> &face_list) const {
     if (type != ncnn::Mat::PIXEL_RGB && type != ncnn::Mat::PIXEL_BGR ) {
         SNOWBOY_LOG(LogLevel::WARNING) << "image should be rgb format" << std::endl;
         return -1;
@@ -88,7 +90,8 @@ int UltraFace::detect(const unsigned char *pixel_array, int w, int h, int type, 
     return detect(img, face_list, w, h);
 }
 
-int UltraFace::detect(ncnn::Mat &img, std::vector<FaceInfo> &face_list, int ori_w, int ori_h) {
+int UltraFace::detect(ncnn::Mat &img, std::vector<FaceInfo> &face_list,
+        int ori_w, int ori_h) const {
     if (img.empty()) {
         std::cout << "image is empty ,please check!" << std::endl;
         return -1;
@@ -122,7 +125,7 @@ int UltraFace::detect(ncnn::Mat &img, std::vector<FaceInfo> &face_list, int ori_
 }
 
 void UltraFace::generateBBox(std::vector<FaceInfo> &bbox_collection, ncnn::Mat scores, ncnn::Mat boxes,
-                             float score_threshold, int num_anchors, int ori_w, int ori_h) {
+                             float score_threshold, int num_anchors, int ori_w, int ori_h) const {
     for (int i = 0; i < num_anchors; i++) {
         if (scores.channel(0)[i * 2 + 1] > score_threshold) {
             FaceInfo rects;
@@ -141,7 +144,7 @@ void UltraFace::generateBBox(std::vector<FaceInfo> &bbox_collection, ncnn::Mat s
     }
 }
 
-void UltraFace::nms(std::vector<FaceInfo> &input, std::vector<FaceInfo> &output, int type) {
+void UltraFace::nms(std::vector<FaceInfo> &input, std::vector<FaceInfo> &output, int type) const {
     std::sort(input.begin(), input.end(), [](const FaceInfo &a, const FaceInfo &b) { return a.score > b.score; });
 
     int box_num = input.size();

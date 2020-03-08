@@ -10,6 +10,7 @@ find_library(LIB_NCNN libncnn.a 3rdparty/ncnn/install/lib)
 add_subdirectory(utils)
 add_subdirectory(kernel)
 add_subdirectory(kernel_bin)
+#add_subdirectory(kernel_sdk)
 
 
 set(HEADERS kernel/UltraFace.h)

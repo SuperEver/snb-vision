@@ -31,19 +31,22 @@ public:
 
     ~UltraFace();
 
+    bool is_initialized() const { return b_initialized;}
+
     // 输入图，返回人脸框，原图宽高（用于将人脸框映射到此尺寸)
-    int detect(ncnn::Mat &img, std::vector<FaceInfo> &face_list, int ori_w, int ori_h);
+    int detect (ncnn::Mat &img, std::vector<FaceInfo> &face_list, int ori_w, int ori_h) const;
 
     // 输入图像素数据，宽，高，通道类型（ncnn::Mat::PIXEL_RGB或ncnn::Mat::PIXEL_BGR)，人脸框
-    int detect(const unsigned char *pixel_array, int w, int h, int type, std::vector<FaceInfo> &face_list);
+    int detect(const unsigned char *pixel_array, int w, int h, int type, std::vector<FaceInfo> &face_list) const;
 
 private:
     void generateBBox(std::vector<FaceInfo> &bbox_collection, ncnn::Mat scores, ncnn::Mat boxes, float score_threshold,
-                      int num_anchors, int ori_w, int ori_h);
+                      int num_anchors, int ori_w, int ori_h) const;
 
-    void nms(std::vector<FaceInfo> &input, std::vector<FaceInfo> &output, int type = blending_nms);
+    void nms(std::vector<FaceInfo> &input, std::vector<FaceInfo> &output, int type = blending_nms) const;
 
 private:
+    bool b_initialized = false;
     ncnn::Net ultraface;
 
     int num_thread;
@@ -54,7 +57,6 @@ private:
     int in_h;
     int num_anchors;
 
-    int topk;
     float score_threshold;
     float iou_threshold;
 

@@ -3,6 +3,7 @@
 set ( INSTALL_BIN bin CACHE PATH "Where to install binaries to." )
 set ( INSTALL_LIB lib CACHE PATH "Where to install libraries to." )
 set ( INSTALL_INC include CACHE PATH "Where to install headers to." )
+set ( INSTALL_SDK sdk CACHE PATH "Where to install sdk(inc, so) to." )
 
 # Parser macro
 macro ( parse_arguments prefix arg_names option_names)
@@ -73,5 +74,12 @@ macro ( install_executable )
     foreach ( _file ${ARGN} )
         install ( TARGETS ${_file} RUNTIME DESTINATION ${INSTALL_BIN}
                 COMPONENT Runtime )
+    endforeach()
+endmacro ()
+
+macro ( install_sdk )
+    foreach ( _file ${ARGN} )
+        install ( TARGETS ${_file}
+                RUNTIME DESTINATION ${INSTALL_SDK} COMPONENT Runtime)
     endforeach()
 endmacro ()
